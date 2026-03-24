@@ -1,3 +1,4 @@
+console.log("SERVER.TS EXECUTING...");
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -11,13 +12,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function startServer() {
+  console.log("Starting server initialization...");
   const app = express();
   const PORT = 3000;
 
   app.use(express.json({ limit: '50mb' }));
 
   // API routes
+  console.log("Registering API routes...");
   app.get("/api/health", (req, res) => {
+    console.log("Health check requested");
     res.json({ status: "ok", message: "Server is running" });
   });
 
@@ -121,11 +125,13 @@ async function startServer() {
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
+    console.log("Initializing Vite middleware...");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
+    console.log("Vite middleware ready");
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
@@ -145,4 +151,7 @@ async function startServer() {
   });
 }
 
-startServer();
+startServer().catch((err) => {
+  console.error("CRITICAL: Server failed to start:", err);
+  process.exit(1);
+});

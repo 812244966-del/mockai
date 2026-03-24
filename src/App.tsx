@@ -164,6 +164,7 @@ export default function App() {
         const data = await res.json();
         setHealthStatus(data.status === 'ok' ? 'API Connected' : 'API Error');
       } catch (err) {
+        console.error("Health check fetch error:", err);
         setHealthStatus('API Unreachable');
       }
     };
