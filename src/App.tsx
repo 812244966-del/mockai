@@ -155,6 +155,21 @@ export default function App() {
   const resumeInputRef = useRef<HTMLInputElement>(null);
   const jobInputRef = useRef<HTMLInputElement>(null);
 
+  const [healthStatus, setHealthStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const res = await fetch('/api/health');
+        const data = await res.json();
+        setHealthStatus(data.status === 'ok' ? 'API Connected' : 'API Error');
+      } catch (err) {
+        setHealthStatus('API Unreachable');
+      }
+    };
+    checkHealth();
+  }, []);
+
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>, type: 'resume' | 'job') => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -240,6 +255,10 @@ export default function App() {
         <h1 className="text-5xl md:text-7xl font-display font-bold tracking-tight mb-4 liquid-glass-text">
           MockAI
         </h1>
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <div className={`w-2 h-2 rounded-full ${healthStatus === 'API Connected' ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
+          <span className="text-xs text-[#1D1D1F]/40 uppercase tracking-widest">{healthStatus || 'Checking API...'}</span>
+        </div>
         <p className="text-[#1D1D1F]/60 text-lg max-w-2xl mx-auto font-light">
           利用 AI 深度分析简历与岗位匹配度，助您轻松应对面试。
         </p>

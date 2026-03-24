@@ -17,6 +17,10 @@ async function startServer() {
   app.use(express.json({ limit: '50mb' }));
 
   // API routes
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", message: "Server is running" });
+  });
+
   app.post("/api/analyze", async (req, res) => {
     console.log("Received analysis request");
     const { resume, jobDesc, jobText } = req.body;
@@ -33,7 +37,7 @@ async function startServer() {
         return res.status(500).json({ error: "服务器未配置 GEMINI_API_KEY。" });
       }
 
-      console.log("Calling Gemini API with model: gemini-3.1-pro-preview");
+      console.log("Calling Gemini API with model: gemini-3-flash-preview");
       const ai = new GoogleGenAI({ apiKey });
       
       const parts: any[] = [
@@ -50,7 +54,7 @@ async function startServer() {
       }
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.1-pro-preview",
+        model: "gemini-3-flash-preview",
         contents: [{ parts }],
         config: {
           responseMimeType: "application/json",
@@ -101,7 +105,13 @@ async function startServer() {
         }
       });
 
-      const data = JSON.parse(response.text || "{}");
+      let data;
+      try {
+        data = JSON.parse(response.text || "{}");
+      } catch (parseErr) {
+        console.error("Failed to parse Gemini response as JSON:", response.text);
+        return res.status(500).json({ error: "模型返回格式错误，请重试。", details: response.text });
+      }
       res.json(data);
     } catch (err: any) {
       console.error("Gemini API Error:", err);
@@ -123,6 +133,12 @@ async function startServer() {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
+
+  // Global error handler
+  app.use((err: any, req: any, res: any, next: any) => {
+    console.error("Unhandled Server Error:", err);
+    res.status(500).json({ error: "Internal Server Error", details: err.message });
+  });
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
