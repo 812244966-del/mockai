@@ -18,18 +18,22 @@ async function startServer() {
 
   // API routes
   app.post("/api/analyze", async (req, res) => {
+    console.log("Received analysis request");
     const { resume, jobDesc, jobText } = req.body;
 
     if (!resume) {
+      console.log("Error: Resume missing");
       return res.status(400).json({ error: "请先上传您的简历。" });
     }
 
     try {
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
+        console.log("Error: GEMINI_API_KEY missing in environment");
         return res.status(500).json({ error: "服务器未配置 GEMINI_API_KEY。" });
       }
 
+      console.log("Calling Gemini API with model: gemini-3.1-pro-preview");
       const ai = new GoogleGenAI({ apiKey });
       
       const parts: any[] = [

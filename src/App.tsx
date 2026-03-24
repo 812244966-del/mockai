@@ -210,19 +210,18 @@ export default function App() {
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "分析失败");
+        throw new Error(data.error || "分析失败");
       }
 
       if (!analysisRef.current) return;
-
-      const data = await response.json();
       setResult(data);
-    } catch (err) {
+    } catch (err: any) {
       if (!analysisRef.current) return;
-      console.error(err);
-      setError("分析失败，请重试。");
+      console.error("Analysis Error:", err);
+      setError(err.message || "分析失败，请重试。");
     } finally {
       if (analysisRef.current) {
         setIsAnalyzing(false);
